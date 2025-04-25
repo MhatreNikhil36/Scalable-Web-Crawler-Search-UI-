@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: crawler
+      POSTGRES_PASSWORD: crawler
+      POSTGRES_DB: crawlerdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  crawler:
+    build: .
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql+psycopg2://crawler:crawler@postgres:5432/crawlerdb
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    restart: on-failure
+
+  streamlit:
+    build: .
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql+psycopg2://crawler:crawler@postgres:5432/crawlerdb
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    command: >
+      bash -c "streamlit run streamlit_app.py
+               --server.port 8501 --server.address 0.0.0.0"
+    ports:
+      - "8501:8501"
+    restart: on-failure
+
+volumes:
+  pgdata:
