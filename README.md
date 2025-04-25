@@ -10,6 +10,8 @@
 ```bash
 docker compose build
 docker compose up        # open http://localhost:8501
+
+docker compose up --build --scale crawler={number of crawlers}
 ```
 
 # architecture
